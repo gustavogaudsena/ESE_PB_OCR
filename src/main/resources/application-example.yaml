@@ -1,0 +1,11 @@
+spring:
+  application:
+    name:
+oci:
+  config:
+    namespace:
+    bucket-name:
+    compartment-id:
+aws:
+  config:
+    bucket-name:

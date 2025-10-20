@@ -1,6 +1,6 @@
 package br.com.ocr.ocr_api.dto;
 
-public record JobResponseDTO(
+public record JobResponse(
         String jobId
 ) {
 }

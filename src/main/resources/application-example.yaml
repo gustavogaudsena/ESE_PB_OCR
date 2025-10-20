@@ -1,11 +1,14 @@
 spring:
   application:
     name:
-oci:
-  config:
-    namespace:
-    bucket-name:
-    compartment-id:
+  data:
+    mongodb:
+      uri:
+server:
+  port:
 aws:
   config:
     bucket-name:
+gemini:
+  config:
+    api-key:

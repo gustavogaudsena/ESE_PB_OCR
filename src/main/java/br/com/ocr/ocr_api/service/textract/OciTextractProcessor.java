@@ -1,6 +1,6 @@
-package br.com.ocr.ocr_api.service;
+package br.com.ocr.ocr_api.service.textract;
 
-import br.com.ocr.ocr_api.dto.JobResponseDTO;
+import br.com.ocr.ocr_api.dto.JobResponse;
 import com.oracle.bmc.aidocument.AIServiceDocumentClient;
 import com.oracle.bmc.aidocument.model.*;
 import com.oracle.bmc.aidocument.requests.AnalyzeDocumentRequest;
@@ -19,7 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OciTextractService {
+public class OciTextractProcessor {
 
     private final AIServiceDocumentClient client;
 
@@ -30,7 +30,7 @@ public class OciTextractService {
     @Value("${oci.config.compartment-id}")
     private String compartmentId;
 
-    public JobResponseDTO createProcessorJobFromFile(MultipartFile file) throws IOException {
+    public JobResponse createProcessorJobFromFile(MultipartFile file) throws IOException {
 
         byte[] bytes = file.getBytes();
 
@@ -66,7 +66,7 @@ public class OciTextractService {
 
         ProcessorJob job = response.getProcessorJob();
 
-        return new JobResponseDTO(job.getId());
+        return new JobResponse(job.getId());
     }
 
     public GetProcessorJobResponse getProcessorJobRequest(String jobId) {

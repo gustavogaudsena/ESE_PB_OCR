@@ -1,5 +1,6 @@
 package br.com.ocr.ocr_api.service.storage;
 
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -7,8 +8,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
-import java.util.List;
 
+@Service
 public class S3StorageService implements StorageServiceInterface {
 
     private final S3Client s3;

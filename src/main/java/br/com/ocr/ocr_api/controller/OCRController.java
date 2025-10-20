@@ -1,42 +1,45 @@
 package br.com.ocr.ocr_api.controller;
 
-import br.com.ocr.ocr_api.dto.JobResponseDTO;
+import br.com.ocr.ocr_api.dto.JobResponse;
+import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
+import br.com.ocr.ocr_api.model.AiJob;
 import br.com.ocr.ocr_api.service.OCRService;
-import com.oracle.bmc.aidocument.responses.CreateProcessorJobResponse;
-import com.oracle.bmc.aidocument.responses.GetProcessorJobResponse;
+import br.com.ocr.ocr_api.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
 public class OCRController {
-    private final OCRService service;
+    private final OCRService ocrService;
+    private final AiService aiService;
 
     @PostMapping
-    public JobResponseDTO createInvoiceProcessing(@RequestParam("receipt") MultipartFile file) {
+    public JobResponse startOcrAnalysis(@RequestParam("receipt") MultipartFile file) {
         try {
-            return service.startAnalyzeFromFile(file);
+            return ocrService.startAnalyzeFromFile(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @PostMapping("/analyze")
-    public Map<String, Object> analyzeFromFile(@RequestParam("receipt") MultipartFile file) {
-        try {
-            return service.analyzeFromFile(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    @GetMapping("/{ocrJobId}")
+    public OcrProcessorResponse getOcrAnalysis(@PathVariable String ocrJobId) throws IOException {
+        return ocrService.getProcessorJobRequest(ocrJobId);
     }
 
-    @GetMapping("/{jobId}")
-    public Map<String, Object> getProcessorJobRequest(@PathVariable String jobId) throws IOException {
-        return service.getProcessorJobRequest(jobId);
+    @PostMapping("/ai/{ocrJobId}")
+    public JobResponse startAiAnalysis(@PathVariable String ocrJobId) throws IOException {
+        OcrProcessorResponse ocrResp = ocrService.getProcessorJobRequest(ocrJobId);
+        return aiService.startAnalysis(ocrJobId, ocrResp.getDocument().getLineItems());
+    }
+
+    @GetMapping("/ai/{jobId}")
+    public AiJob getAiAnalysis(@PathVariable String jobId) {
+        return aiService.getAnalysis(jobId);
     }
 
 }

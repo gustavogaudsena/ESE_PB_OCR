@@ -11,13 +11,15 @@ public class OcrJob {
 
     @Id
     private String jobId;
+    private String ocrJobId;
     private AnalysisStatus status;
     private AnalyzedDocument result;
 
     private String errorMessage;
 
-    public OcrJob(String jobId) {
+    public OcrJob(String jobId, String ocrJobId) {
         this.jobId = jobId;
-        this.status = AnalysisStatus.PENDING;
+        this.ocrJobId = ocrJobId;
+        this.status = AnalysisStatus.CREATED;
     }
 }

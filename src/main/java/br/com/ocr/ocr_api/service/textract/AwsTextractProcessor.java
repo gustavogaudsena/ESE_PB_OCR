@@ -2,6 +2,7 @@ package br.com.ocr.ocr_api.service.textract;
 
 import br.com.ocr.ocr_api.dto.*;
 import br.com.ocr.ocr_api.model.AnalysisStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.SdkBytes;
@@ -16,11 +17,16 @@ import java.util.stream.Collectors;
 @Service
 public class AwsTextractProcessor implements OcrProcessorInterface {
     private final TextractClient textractClient;
+    private final String snsTopicArn;
+    private final String iamRoleArn;
 
-    public AwsTextractProcessor() {
+    public AwsTextractProcessor(@Value("${aws.config.sns-topic-arn}") String snsTopicArn, @Value("${aws.config.iam-role-arn}") String iamRoleArn) {
         this.textractClient = TextractClient.builder()
                 .region(Region.US_EAST_1)
                 .build();
+
+        this.snsTopicArn = snsTopicArn;
+        this.iamRoleArn = iamRoleArn;
     }
 
     public AnalyzedDocument analyzeFromFile(MultipartFile file) throws IOException {
@@ -47,9 +53,15 @@ public class AwsTextractProcessor implements OcrProcessorInterface {
                 .s3Object(s3Object)
                 .build();
 
+        NotificationChannel channel = NotificationChannel.builder()
+                .snsTopicArn(snsTopicArn)
+                .roleArn(iamRoleArn)
+                .build();
+
         StartExpenseAnalysisRequest startExpenseRequest = StartExpenseAnalysisRequest
                 .builder()
                 .documentLocation(documentLocation)
+                .notificationChannel(channel)
                 .build();
 
         StartExpenseAnalysisResponse resp = textractClient.startExpenseAnalysis(startExpenseRequest);
@@ -75,7 +87,7 @@ public class AwsTextractProcessor implements OcrProcessorInterface {
                 String errorMsg = "Textract job failed: " + response.statusMessage();
                 yield new OcrProcessorResponse(AnalysisStatus.FAILED, errorMsg);
             }
-            case "IN_PROGRESS" -> new OcrProcessorResponse(AnalysisStatus.PENDING, "Job is still in progress.");
+            case "IN_PROGRESS" -> new OcrProcessorResponse(AnalysisStatus.CREATED, "Job is still in progress.");
             default -> throw new IOException("Unknown job status from AWSTextract: " + status);
         };
     }

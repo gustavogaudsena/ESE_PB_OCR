@@ -8,10 +8,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
-@Configuration
 public class OCIConfig {
 
-    @Bean
     public AIServiceDocumentClient aiServiceDocumentClient() throws IOException {
         var configFile = ConfigFileReader.parseDefault();
         var provider = new ConfigFileAuthenticationDetailsProvider(configFile);

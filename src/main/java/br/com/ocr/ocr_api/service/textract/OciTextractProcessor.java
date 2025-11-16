@@ -21,93 +21,93 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OciTextractProcessor {
 
-    private final AIServiceDocumentClient client;
-
-    @Value("${oci.config.bucket-name}")
-    private String namespace;
-    @Value("${oci.config.bucket-name}")
-    private String bucketName;
-    @Value("${oci.config.compartment-id}")
-    private String compartmentId;
-
-    public JobResponse createProcessorJobFromFile(MultipartFile file) throws IOException {
-
-        byte[] bytes = file.getBytes();
-
-        String displayName = file.getName();
-
-        InlineDocumentContent content = InlineDocumentContent.builder()
-                .data(bytes)
-                .build();
-
-        OutputLocation outputLocation = OutputLocation.builder()
-                .namespaceName(namespace)
-                .bucketName(bucketName)
-                .build();
-
-        GeneralProcessorConfig processorConfig = GeneralProcessorConfig.builder()
-                .documentType(DocumentType.Receipt)
-                .features(List.of(DocumentKeyValueExtractionFeature.builder().build()))
-                .build();
-
-        CreateProcessorJobDetails createProcessorJobDetails = CreateProcessorJobDetails.builder()
-                .inputLocation(content)
-                .outputLocation(outputLocation)
-                .compartmentId(compartmentId)
-                .displayName(displayName)
-                .processorConfig(processorConfig)
-                .build();
-
-        CreateProcessorJobRequest createProcessorJobRequest = CreateProcessorJobRequest.builder()
-                .createProcessorJobDetails(createProcessorJobDetails)
-                .build();
-
-        CreateProcessorJobResponse response = client.createProcessorJob(createProcessorJobRequest);
-
-        ProcessorJob job = response.getProcessorJob();
-
-        return new JobResponse(job.getId());
-    }
-
-    public GetProcessorJobResponse getProcessorJobRequest(String jobId) {
-
-        GetProcessorJobRequest getProcessorJobRequest = GetProcessorJobRequest.builder()
-                .processorJobId(jobId)
-                .build();
-
-        return client.getProcessorJob(getProcessorJobRequest);
-    }
-
-    public String analyzeFromFile(MultipartFile file) throws IOException {
-
-        byte[] bytes = file.getBytes();
-
-        String displayName = file.getName();
-
-        InlineDocumentDetails documentDetails = InlineDocumentDetails.builder()
-                .data(bytes)
-                .build();
-
-        OutputLocation outputLocation = OutputLocation.builder()
-                .namespaceName(namespace)
-                .bucketName(bucketName)
-                .build();
-
-        AnalyzeDocumentDetails analyzeDocumentDetails = AnalyzeDocumentDetails.builder()
-                .features(List.of(DocumentKeyValueExtractionFeature.builder().build()))
-                .document(documentDetails)
-                .compartmentId(compartmentId)
-                .outputLocation(outputLocation)
-                .documentType(DocumentType.Receipt)
-                .build();
-
-        AnalyzeDocumentRequest analyzeDocumentRequest = AnalyzeDocumentRequest.builder()
-                .analyzeDocumentDetails(analyzeDocumentDetails)
-                .build();
-
-        AnalyzeDocumentResponse response = client.analyzeDocument(analyzeDocumentRequest);
-
-        return response.getAnalyzeDocumentResult().toString();
-    }
+//    private final AIServiceDocumentClient client;
+//
+//    @Value("${oci.config.bucket-name}")
+//    private String namespace;
+//    @Value("${oci.config.bucket-name}")
+//    private String bucketName;
+//    @Value("${oci.config.compartment-id}")
+//    private String compartmentId;
+//
+//    public JobResponse createProcessorJobFromFile(MultipartFile file) throws IOException {
+//
+//        byte[] bytes = file.getBytes();
+//
+//        String displayName = file.getName();
+//
+//        InlineDocumentContent content = InlineDocumentContent.builder()
+//                .data(bytes)
+//                .build();
+//
+//        OutputLocation outputLocation = OutputLocation.builder()
+//                .namespaceName(namespace)
+//                .bucketName(bucketName)
+//                .build();
+//
+//        GeneralProcessorConfig processorConfig = GeneralProcessorConfig.builder()
+//                .documentType(DocumentType.Receipt)
+//                .features(List.of(DocumentKeyValueExtractionFeature.builder().build()))
+//                .build();
+//
+//        CreateProcessorJobDetails createProcessorJobDetails = CreateProcessorJobDetails.builder()
+//                .inputLocation(content)
+//                .outputLocation(outputLocation)
+//                .compartmentId(compartmentId)
+//                .displayName(displayName)
+//                .processorConfig(processorConfig)
+//                .build();
+//
+//        CreateProcessorJobRequest createProcessorJobRequest = CreateProcessorJobRequest.builder()
+//                .createProcessorJobDetails(createProcessorJobDetails)
+//                .build();
+//
+//        CreateProcessorJobResponse response = client.createProcessorJob(createProcessorJobRequest);
+//
+//        ProcessorJob job = response.getProcessorJob();
+//
+//        return new JobResponse(job.getId());
+//    }
+//
+//    public GetProcessorJobResponse getProcessorJobRequest(String jobId) {
+//
+//        GetProcessorJobRequest getProcessorJobRequest = GetProcessorJobRequest.builder()
+//                .processorJobId(jobId)
+//                .build();
+//
+//        return client.getProcessorJob(getProcessorJobRequest);
+//    }
+//
+//    public String analyzeFromFile(MultipartFile file) throws IOException {
+//
+//        byte[] bytes = file.getBytes();
+//
+//        String displayName = file.getName();
+//
+//        InlineDocumentDetails documentDetails = InlineDocumentDetails.builder()
+//                .data(bytes)
+//                .build();
+//
+//        OutputLocation outputLocation = OutputLocation.builder()
+//                .namespaceName(namespace)
+//                .bucketName(bucketName)
+//                .build();
+//
+//        AnalyzeDocumentDetails analyzeDocumentDetails = AnalyzeDocumentDetails.builder()
+//                .features(List.of(DocumentKeyValueExtractionFeature.builder().build()))
+//                .document(documentDetails)
+//                .compartmentId(compartmentId)
+//                .outputLocation(outputLocation)
+//                .documentType(DocumentType.Receipt)
+//                .build();
+//
+//        AnalyzeDocumentRequest analyzeDocumentRequest = AnalyzeDocumentRequest.builder()
+//                .analyzeDocumentDetails(analyzeDocumentDetails)
+//                .build();
+//
+//        AnalyzeDocumentResponse response = client.analyzeDocument(analyzeDocumentRequest);
+//
+//        return response.getAnalyzeDocumentResult().toString();
+//    }
 
 }

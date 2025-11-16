@@ -15,9 +15,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
-public class GeminiProcessor implements AiProcessorInterface {
+public class GeminiProcessor implements AiProcessor {
 
     private final Client client;
     private final AiJobRepository jobRepository;
@@ -32,7 +33,7 @@ public class GeminiProcessor implements AiProcessorInterface {
     }
 
     @Async
-    public void analyzeItemList(List<LineItem> lineItems, String jobId) {
+    public CompletableFuture<AiJob> analyzeItemList(List<LineItem> lineItems, String jobId) {
         try {
             Schema schema = Schema.builder()
                     .example(List.of(AiAnalyzedItem.class))
@@ -150,11 +151,13 @@ public class GeminiProcessor implements AiProcessorInterface {
             job.setResult(aiAnalyzedList);
             jobRepository.save(job);
 
+            return CompletableFuture.completedFuture(job);
         } catch (Exception e) {
             AiJob job = jobRepository.findById(jobId).orElseThrow();
             job.setFailed();
             job.setErrorMessage(e.getMessage());
             jobRepository.save(job);
+            return CompletableFuture.failedFuture(e);
         }
     }
 

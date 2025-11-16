@@ -14,16 +14,18 @@ public class AiJob {
 
     @Id
     private String jobId;
+    private String aiJobId;
     private String ocrJobId;
     private AnalysisStatus status;
     private List<AiAnalyzedItem> result;
 
     private String errorMessage;
 
-    public AiJob(String ocrJobId) {
-        this.jobId = UUID.randomUUID().toString();
+    public AiJob(String jobId, String ocrJobId) {
+        this.aiJobId = UUID.randomUUID().toString();
+        this.jobId = jobId;
         this.ocrJobId = ocrJobId;
-        this.status = AnalysisStatus.PENDING;
+        this.status = AnalysisStatus.CREATED;
     }
 
     public void setCompleted() {

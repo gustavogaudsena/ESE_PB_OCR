@@ -1,16 +1,16 @@
 package br.com.ocr.ocr_api.service.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.IOException;
 
 @Service
-public class S3StorageService implements StorageServiceInterface {
+@Slf4j
+public class S3StorageService implements StorageService {
 
     private final S3Client s3;
     private final String bucketName = "stockflow-textract-dev-us";
@@ -23,21 +23,17 @@ public class S3StorageService implements StorageServiceInterface {
     }
 
     @Override
-    public Object upload(MultipartFile file, String key) {
-        try {
-            byte[] bytes = file.getBytes();
+    public Object upload(byte[] fileBytes, String key) {
+        log.info("Uploading file: {}", key);
 
-            PutObjectRequest putOb = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .build();
+        PutObjectRequest putOb = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
 
-            PutObjectResponse response = s3.putObject(putOb, RequestBody.fromBytes(bytes));
-            System.out.printf("File uploaded successfully to %s/%s", bucketName, key);
-            return response;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PutObjectResponse response = s3.putObject(putOb, RequestBody.fromBytes(fileBytes));
+        System.out.printf("File uploaded successfully to %s/%s", bucketName, key);
+        return response;
     }
 
     @Override

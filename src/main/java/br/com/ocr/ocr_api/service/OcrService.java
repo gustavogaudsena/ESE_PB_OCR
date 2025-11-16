@@ -6,31 +6,29 @@ import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
 import br.com.ocr.ocr_api.model.AnalysisStatus;
 import br.com.ocr.ocr_api.model.OcrJob;
 import br.com.ocr.ocr_api.repository.OcrJobRepository;
-import br.com.ocr.ocr_api.service.storage.StorageServiceInterface;
+import br.com.ocr.ocr_api.service.storage.StorageService;
 import br.com.ocr.ocr_api.service.textract.OcrProcessorInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
-public class OCRService {
+public class OcrService {
 
     private final OcrProcessorInterface ocrProcessor;
     private final OcrJobRepository ocrJobRepository;
-    private final StorageServiceInterface storageService;
+    private final StorageService storageService;
     @Value("${aws.config.bucket-name}")
     private String bucketName;
 
-    public JobResponse startAnalyzeFromFile(MultipartFile file) throws IOException {
-        String key = file.getName();
-        var s3Path = storageService.upload(file, key);
+    public JobResponse startAnalyze(String jobId, String fileIdentifier) throws IOException {
 
-        JobResponse job = ocrProcessor.startJob(bucketName, key);
-        OcrJob ocrJob = new OcrJob(job.jobId());
+        JobResponse job = ocrProcessor.startJob(bucketName, fileIdentifier);
+        String ocrJobId = job.jobId();
+        OcrJob ocrJob = new OcrJob(jobId, ocrJobId);
         ocrJobRepository.save(ocrJob);
 
         return job;
@@ -49,7 +47,7 @@ public class OCRService {
             throw new IOException("Job failed: " + job.getErrorMessage());
         }
 
-        OcrProcessorResponse ocrProcessorResponse = ocrProcessor.getJobResult(jobId);
+        OcrProcessorResponse ocrProcessorResponse = ocrProcessor.getJobResult(job.getOcrJobId());
 
         switch (ocrProcessorResponse.getStatus()) {
             case COMPLETED:
@@ -66,6 +64,11 @@ public class OCRService {
                 return new OcrProcessorResponse(AnalysisStatus.FAILED, errorMsg);
         }
 
-        return new OcrProcessorResponse(AnalysisStatus.PENDING, "Job is still in progress.");
+        return new OcrProcessorResponse(AnalysisStatus.CREATED, "Job is still in progress.");
+    }
+
+    public OcrProcessorResponse fallback1(Throwable e) {
+        System.out.println(e.getMessage());
+        return new OcrProcessorResponse(AnalysisStatus.CREATED, "Job is still in progress.");
     }
 }

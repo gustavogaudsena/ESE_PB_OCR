@@ -2,6 +2,7 @@ package br.com.ocr.ocr_api.service;
 
 import br.com.ocr.ocr_api.commands.RegisterAiResult;
 import br.com.ocr.ocr_api.dto.JobResponse;
+import br.com.ocr.ocr_api.infra.StockflowClient;
 import br.com.ocr.ocr_api.model.AiJob;
 import br.com.ocr.ocr_api.model.OcrJob;
 import br.com.ocr.ocr_api.repository.AiJobRepository;
@@ -23,6 +24,7 @@ public class AiService {
     private final OcrJobRepository ocrJobRepository;
     private final AiProcessor aiProcessor;
     private final CommandGateway command;
+    private final StockflowClient stockflowClient;
 
     public JobResponse startAnalysis(String jobId) throws IOException {
         OcrJob ocrJob = ocrJobRepository.findById(jobId).orElseThrow(() -> new IOException("Job not found in database: " + jobId));
@@ -46,5 +48,14 @@ public class AiService {
         return aiJobRepository.findById(jobId).orElseThrow();
     }
 
+    public void createTransaction(String jobId) throws IOException {
+        AiJob aiJob = aiJobRepository.findById(jobId).orElseThrow();
+
+        if (aiJob.getResult() == null) {
+            throw new IOException("Analysis result should not be null");
+        }
+
+        stockflowClient.createTransactionByList(aiJob.getResult());
+    }
 
 }

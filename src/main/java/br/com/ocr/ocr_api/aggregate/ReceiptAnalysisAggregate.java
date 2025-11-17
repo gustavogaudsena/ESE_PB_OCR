@@ -90,9 +90,9 @@ public class ReceiptAnalysisAggregate {
 
     @CommandHandler
     public void handle(RequestAiAnalysis cmd) {
-        if (this.status != AnalysisStatus.PENDING_OCR) {
-            throw new RuntimeException("Job status should be 'PENDING_OCR' before before requesting AI analysis");
-        }
+//        if (this.status != AnalysisStatus.PENDING_OCR) {
+//            throw new RuntimeException("Job status should be 'PENDING_OCR' before before requesting AI analysis");
+//        }
 
         apply(new AiAnalysisRequested(cmd.getJobId(), cmd.getOcrJobId(), Instant.now()));
     }

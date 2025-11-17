@@ -58,10 +58,10 @@ public class OcrWorkflowSaga {
 
     @EndSaga
     @SagaEventHandler(associationProperty = "jobId")
-    public void on(AiAnalysisCompleted event) {
+    public void on(AiAnalysisCompleted event) throws IOException {
         log.info("AI analysis completed for job {}, aiJobId={}", event.jobId(), event.aiJobId());
 
-//        Envia os dados para endpoint do stockflow ou publica em um pub/sub para ser consumido no stockflow.
+        aiService.createTransaction(event.jobId());
     }
 
 }

@@ -33,6 +33,12 @@ public class OcrController {
         return new JobResponse(jobId);
     }
 
+    @PostMapping("/{jobId}")
+    public void createTransactionByAiAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
+        log.info("Retryng AI analysis jobId: {}", jobId);
+        aiService.createTransaction(jobId);
+    }
+
     @GetMapping("/{ocrJobId}")
     public OcrProcessorResponse getOcrAnalysis(@PathVariable String ocrJobId) throws IOException, ExecutionException, InterruptedException {
         log.info("Getting Recipt analysis OcrJobId={}", ocrJobId);

@@ -21,7 +21,6 @@ public class ReceiptAnalysisAggregate {
     @AggregateIdentifier
     private String jobId;
     private String ocrJobId;
-    private String aiJobId;
     private AnalysisStatus status;
     private String fileIdentifier;
 
@@ -101,23 +100,34 @@ public class ReceiptAnalysisAggregate {
     @CommandHandler
     public void handle(RegisterAiResult cmd) {
         if (this.status != AnalysisStatus.PENDING_AI) {
-            throw new RuntimeException("Job status should be 'PENDING_AI' before before registering AI ocrResult");
-        }
-
-        if (cmd.getAiJobId() == null || cmd.getAiJobId().isBlank()) {
-            throw new IllegalArgumentException("AiJobId id is required");
+            throw new RuntimeException("Job status should be 'PENDING_AI' before before registering AI result");
         }
 
         if (cmd.getAiResult() == null || cmd.getAiResult().isEmpty()) {
             throw new IllegalArgumentException("Ai result is required");
         }
 
-        apply(new AiAnalysisCompleted(this.jobId, this.ocrJobId, cmd.getAiJobId(), cmd.getAiResult(),AnalysisStatus.COMPLETED, Instant.now()));
+        apply(new AiAnalysisCompleted(this.jobId, cmd.getAiResult(), AnalysisStatus.COMPLETED, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(AiAnalysisCompleted event) {
-        this.aiJobId = event.aiJobId();
+        this.status = event.status();
+    }
+
+    @CommandHandler
+    public void handle(RegisterAiAnalysisFailed cmd) {
+        if (this.status != AnalysisStatus.PENDING_AI) {
+            throw new RuntimeException("Job status should be 'PENDING_AI' before before registering AI Failed Command");
+        }
+
+        String message = cmd.getMessage() != null ?  cmd.getMessage() : "Message not avaible";
+
+        apply(new AiAnalysisFailed(this.jobId, message, AnalysisStatus.FAILED, Instant.now()));
+    }
+
+    @EventSourcingHandler
+    public void on(AiAnalysisFailed event) {
         this.status = event.status();
     }
 }

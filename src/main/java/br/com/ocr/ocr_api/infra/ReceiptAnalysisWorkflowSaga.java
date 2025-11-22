@@ -1,4 +1,4 @@
-package br.com.ocr.ocr_api.saga;
+package br.com.ocr.ocr_api.infra;
 
 import br.com.ocr.ocr_api.commands.RegisterOcrAnalysis;
 import br.com.ocr.ocr_api.commands.StartOcrAnalysis;
@@ -21,7 +21,7 @@ import java.io.IOException;
 @Saga
 @Slf4j
 @NoArgsConstructor
-public class OcrWorkflowSaga {
+public class ReceiptAnalysisWorkflowSaga {
     @Autowired
     private OcrService ocrService;
     @Autowired
@@ -59,8 +59,7 @@ public class OcrWorkflowSaga {
     @EndSaga
     @SagaEventHandler(associationProperty = "jobId")
     public void on(AiAnalysisCompleted event) throws IOException {
-        log.info("AI analysis completed for job {}, aiJobId={}", event.jobId(), event.aiJobId());
-
+        log.info("AI analysis completed for job {}", event.jobId());
         aiService.createTransaction(event.jobId());
     }
 

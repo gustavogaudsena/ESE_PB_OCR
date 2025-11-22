@@ -54,4 +54,12 @@ public class ReceiptAnalysisProjection {
         receiptAnalysis.setStatus(event.status());
         repository.save(receiptAnalysis);
     }
+
+    @EventHandler
+    public void on(AiAnalysisFailed event) {
+        ReceiptAnalysis receiptAnalysis = repository.findById(event.jobId()).orElseThrow();
+        receiptAnalysis.setErrorMessage(event.message());
+        receiptAnalysis.setStatus(event.status());
+        repository.save(receiptAnalysis);
+    }
 }

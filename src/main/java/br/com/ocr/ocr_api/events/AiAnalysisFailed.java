@@ -6,9 +6,9 @@ import br.com.ocr.ocr_api.model.AnalysisStatus;
 import java.time.Instant;
 import java.util.List;
 
-public record AiAnalysisCompleted(
+public record AiAnalysisFailed(
         String jobId,
-        List<AiAnalyzedItem> aiResult,
+        String message,
         AnalysisStatus status,
         Instant ts
 

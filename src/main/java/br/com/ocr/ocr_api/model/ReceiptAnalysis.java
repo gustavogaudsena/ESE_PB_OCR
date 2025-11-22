@@ -21,6 +21,7 @@ public class ReceiptAnalysis {
     private AnalyzedDocument ocrResult;
     private List<AiAnalyzedItem> aiResult;
     private byte[] fileBytes;
+    private String errorMessage;
 
     public ReceiptAnalysis() {
     }

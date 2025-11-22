@@ -1,5 +1,6 @@
 package br.com.ocr.ocr_api.service;
 
+import br.com.ocr.ocr_api.commands.RegisterAiAnalysisFailed;
 import br.com.ocr.ocr_api.commands.RegisterAiResult;
 import br.com.ocr.ocr_api.dto.JobResponse;
 import br.com.ocr.ocr_api.infra.StockflowClient;
@@ -32,11 +33,13 @@ public class AiService {
         AiJob newJob = new AiJob(jobId, ocrJob.getOcrJobId());
         aiJobRepository.save(newJob);
 
+
         aiProcessor.analyzeItemList(ocrJob.getResult().getLineItems(), newJob.getJobId())
                 .thenAccept((result) -> {
-                    command.send(new RegisterAiResult(jobId, ocrJob.getOcrJobId(), result.getAiJobId(), result.getResult()));
+                    command.send(new RegisterAiResult(jobId, ocrJob.getOcrJobId(), result.getResult()));
                 })
                 .exceptionally(e -> {
+                    command.send(new RegisterAiAnalysisFailed(jobId, ocrJob.getOcrJobId(), e.getMessage()));
                     log.error("AI analysis failed for jobId {}", jobId);
                     return null;
                 });

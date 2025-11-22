@@ -1,9 +1,8 @@
 package br.com.ocr.ocr_api.service.ai;
 
-import br.com.ocr.ocr_api.dto.AiAnalyzedItem;
-import br.com.ocr.ocr_api.dto.LineItem;
-import br.com.ocr.ocr_api.model.AiJob;
-import br.com.ocr.ocr_api.repository.AiJobRepository;
+import br.com.ocr.ocr_api.domain.AiAnalyzedItem;
+import br.com.ocr.ocr_api.domain.LineItem;
+import br.com.ocr.ocr_api.infra.ReceiptAnalysisRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
@@ -21,19 +20,19 @@ import java.util.concurrent.CompletableFuture;
 public class GeminiProcessor implements AiProcessor {
 
     private final Client client;
-    private final AiJobRepository jobRepository;
     private final ObjectMapper objectMapper;
+    private final ReceiptAnalysisRepository repository;
 
-    public GeminiProcessor(@Value("${gemini.config.api-key}") String apiKey, AiJobRepository jobRepository, ObjectMapper objectMapper) {
+    public GeminiProcessor(@Value("${gemini.config.api-key}") String apiKey, ReceiptAnalysisRepository repository, ObjectMapper objectMapper) {
         client = Client.builder()
                 .apiKey(apiKey)
                 .build();
         this.objectMapper = objectMapper;
-        this.jobRepository = jobRepository;
+        this.repository = repository;
     }
 
     @Async
-    public CompletableFuture<AiJob> analyzeItemList(List<LineItem> lineItems, String jobId) {
+    public CompletableFuture<List<AiAnalyzedItem>> analyzeItemList(List<LineItem> lineItems, String jobId) {
         try {
             Schema schema = Schema.builder()
                     .example(List.of(AiAnalyzedItem.class))
@@ -145,18 +144,8 @@ public class GeminiProcessor implements AiProcessor {
                     new TypeReference<List<AiAnalyzedItem>>() {}
             );
 
-
-            AiJob job = jobRepository.findById(jobId).orElseThrow();
-            job.setCompleted();
-            job.setResult(aiAnalyzedList);
-            jobRepository.save(job);
-
-            return CompletableFuture.completedFuture(job);
+            return CompletableFuture.completedFuture(aiAnalyzedList);
         } catch (Exception e) {
-            AiJob job = jobRepository.findById(jobId).orElseThrow();
-            job.setFailed();
-            job.setErrorMessage(e.getMessage());
-            jobRepository.save(job);
             return CompletableFuture.failedFuture(e);
         }
     }

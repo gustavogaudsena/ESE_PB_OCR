@@ -1,8 +1,6 @@
-package br.com.ocr.ocr_api.model;
+package br.com.ocr.ocr_api.domain;
 
 
-import br.com.ocr.ocr_api.dto.AiAnalyzedItem;
-import br.com.ocr.ocr_api.dto.AnalyzedDocument;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -22,6 +20,7 @@ public class ReceiptAnalysis {
     private List<AiAnalyzedItem> aiResult;
     private byte[] fileBytes;
     private String errorMessage;
+    private String fileIdentifier;
 
     public ReceiptAnalysis() {
     }

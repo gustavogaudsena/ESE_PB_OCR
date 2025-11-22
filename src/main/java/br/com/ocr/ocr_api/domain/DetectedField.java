@@ -1,4 +1,4 @@
-package br.com.ocr.ocr_api.dto;
+package br.com.ocr.ocr_api.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

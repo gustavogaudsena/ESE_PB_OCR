@@ -1,12 +1,11 @@
 package br.com.ocr.ocr_api.service;
 
-import br.com.ocr.ocr_api.dto.AnalyzedDocument;
+import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import br.com.ocr.ocr_api.dto.JobResponse;
 import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
-import br.com.ocr.ocr_api.model.AnalysisStatus;
-import br.com.ocr.ocr_api.model.OcrJob;
-import br.com.ocr.ocr_api.repository.OcrJobRepository;
-import br.com.ocr.ocr_api.service.storage.StorageService;
+import br.com.ocr.ocr_api.infra.ReceiptAnalysisRepository;
+import br.com.ocr.ocr_api.domain.AnalysisStatus;
+import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import br.com.ocr.ocr_api.service.textract.OcrProcessorInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,28 +18,22 @@ import java.io.IOException;
 public class OcrService {
 
     private final OcrProcessorInterface ocrProcessor;
-    private final OcrJobRepository ocrJobRepository;
-    private final StorageService storageService;
+    private final ReceiptAnalysisRepository repository;
     @Value("${aws.config.bucket-name}")
     private String bucketName;
 
-    public JobResponse startAnalyze(String jobId, String fileIdentifier) throws IOException {
-
-        JobResponse job = ocrProcessor.startJob(bucketName, fileIdentifier);
-        String ocrJobId = job.jobId();
-        OcrJob ocrJob = new OcrJob(jobId, ocrJobId);
-        ocrJobRepository.save(ocrJob);
-
-        return job;
+    public JobResponse startAnalyze(String jobId) throws IOException {
+        ReceiptAnalysis job = repository.findById(jobId).orElseThrow(() -> new IOException("Job not found in database"));
+        return ocrProcessor.startJob(bucketName, job.getFileIdentifier());
     }
 
     public OcrProcessorResponse getProcessorJobRequest(String jobId) throws IOException {
 
-        OcrJob job = ocrJobRepository.findById(jobId)
-                .orElseThrow(() -> new IOException("Job not found in database: " + jobId));
+        ReceiptAnalysis job = repository.findById(jobId)
+                .orElseThrow(() -> new IOException("Job not found in database"));
 
         if (job.getStatus() == AnalysisStatus.COMPLETED) {
-            return new OcrProcessorResponse(job.getResult());
+            return new OcrProcessorResponse(job.getOcrResult());
         }
 
         if (job.getStatus() == AnalysisStatus.FAILED) {
@@ -49,22 +42,17 @@ public class OcrService {
 
         OcrProcessorResponse ocrProcessorResponse = ocrProcessor.getJobResult(job.getOcrJobId());
 
-        switch (ocrProcessorResponse.getStatus()) {
-            case COMPLETED:
+        return switch (ocrProcessorResponse.getStatus()) {
+            case COMPLETED -> {
                 AnalyzedDocument analyzedDocument = ocrProcessorResponse.getDocument();
-                job.setResult(analyzedDocument);
-                job.setStatus(AnalysisStatus.COMPLETED);
-                ocrJobRepository.save(job);
-                return new OcrProcessorResponse(analyzedDocument);
-            case FAILED:
+                yield new OcrProcessorResponse(analyzedDocument);
+            }
+            case FAILED -> {
                 String errorMsg = ocrProcessorResponse.getErrorMessage();
-                job.setStatus(AnalysisStatus.FAILED);
-                job.setErrorMessage(errorMsg);
-                ocrJobRepository.save(job);
-                return new OcrProcessorResponse(AnalysisStatus.FAILED, errorMsg);
-        }
-
-        return new OcrProcessorResponse(AnalysisStatus.CREATED, "Job is still in progress.");
+                yield new OcrProcessorResponse(AnalysisStatus.FAILED, errorMsg);
+            }
+            default -> new OcrProcessorResponse(AnalysisStatus.CREATED, "Job is still in progress.");
+        };
     }
 
     public OcrProcessorResponse fallback1(Throwable e) {

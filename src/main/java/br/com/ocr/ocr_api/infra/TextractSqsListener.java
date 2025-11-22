@@ -2,8 +2,7 @@ package br.com.ocr.ocr_api.infra;
 
 import br.com.ocr.ocr_api.commands.RequestAiAnalysis;
 import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
-import br.com.ocr.ocr_api.model.OcrJob;
-import br.com.ocr.ocr_api.repository.OcrJobRepository;
+import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import br.com.ocr.ocr_api.service.OcrService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,7 +22,7 @@ public class TextractSqsListener {
     private final CommandGateway command;
     private final ObjectMapper objectMapper;
     private final OcrService ocrService;
-    private final OcrJobRepository ocrJobRepository;
+    private final ReceiptAnalysisRepository repository;
 
     @SqsListener("ocr-completed-queue")
     public void handleTextractNotification(String messageJson) throws JsonProcessingException {
@@ -40,8 +39,8 @@ public class TextractSqsListener {
 
         log.info("SQS: Receiving Ocr Notification [{}], Status: {}", ocrJobId, status);
 
-        String jobId = ocrJobRepository.findByOcrJobId(ocrJobId)
-                .map(OcrJob::getJobId)
+        String jobId = repository.findByOcrJobId(ocrJobId)
+                .map(ReceiptAnalysis::getId)
                 .orElse(null);
 
         if (jobId == null) {

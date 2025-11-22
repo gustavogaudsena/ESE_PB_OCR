@@ -1,6 +1,6 @@
 package br.com.ocr.ocr_api.commands;
 
-import br.com.ocr.ocr_api.dto.AnalyzedDocument;
+import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

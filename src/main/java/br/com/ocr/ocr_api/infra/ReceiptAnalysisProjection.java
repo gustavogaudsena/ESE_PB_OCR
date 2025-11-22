@@ -1,8 +1,7 @@
 package br.com.ocr.ocr_api.infra;
 
 import br.com.ocr.ocr_api.events.*;
-import br.com.ocr.ocr_api.model.AnalysisStatus;
-import br.com.ocr.ocr_api.model.ReceiptAnalysis;
+import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +27,7 @@ public class ReceiptAnalysisProjection {
     public void on(OcrAnalysisStarted event) {
         ReceiptAnalysis receiptAnalysis = repository.findById(event.jobId()).orElseThrow();
         receiptAnalysis.setStatus(event.status());
+        receiptAnalysis.setFileIdentifier(event.fileIdentifier());
         repository.save(receiptAnalysis);
     }
 

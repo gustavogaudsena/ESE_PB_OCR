@@ -1,6 +1,6 @@
 package br.com.ocr.ocr_api.infra;
 
-import br.com.ocr.ocr_api.model.ReceiptAnalysis;
+import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

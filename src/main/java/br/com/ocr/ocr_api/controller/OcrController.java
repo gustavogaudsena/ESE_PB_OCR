@@ -3,7 +3,7 @@ package br.com.ocr.ocr_api.controller;
 import br.com.ocr.ocr_api.commands.RequestOcrAnalysis;
 import br.com.ocr.ocr_api.dto.JobResponse;
 import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
-import br.com.ocr.ocr_api.model.AiJob;
+import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import br.com.ocr.ocr_api.service.OcrService;
 import br.com.ocr.ocr_api.service.AiService;
 import lombok.RequiredArgsConstructor;
@@ -39,20 +39,21 @@ public class OcrController {
         aiService.createTransaction(jobId);
     }
 
-    @GetMapping("/{ocrJobId}")
-    public OcrProcessorResponse getOcrAnalysis(@PathVariable String ocrJobId) throws IOException, ExecutionException, InterruptedException {
-        log.info("Getting Recipt analysis OcrJobId={}", ocrJobId);
-        return ocrService.getProcessorJobRequest(ocrJobId);
+    @GetMapping("/{jobId}")
+    public OcrProcessorResponse getOcrAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
+        log.info("Getting Recipt analysis jobId={}", jobId);
+        return ocrService.getProcessorJobRequest(jobId);
     }
 
-    @PostMapping("/ai/{ocrJobId}")
-    public JobResponse startAiAnalysis(@PathVariable String ocrJobId) throws IOException, ExecutionException, InterruptedException {
-        log.info("AI analyses of OcrJobId={}", ocrJobId);
-        return aiService.startAnalysis(ocrJobId);
+    @PostMapping("/ai/{jobId}")
+    public JobResponse startAiAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
+        log.info("AI analyses of OcrJobId={}", jobId);
+        return new JobResponse(jobId);
+//        return aiService.startAnalysis(jobId);
     }
 
     @GetMapping("/ai/{jobId}")
-    public AiJob getAiAnalysis(@PathVariable String jobId) {
+    public ReceiptAnalysis getAiAnalysis(@PathVariable String jobId) {
         log.info("Getting AI Recipt analysis do JobId={}", jobId);
         return aiService.getAnalysis(jobId);
     }

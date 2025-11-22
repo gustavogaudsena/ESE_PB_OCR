@@ -1,8 +1,7 @@
-package br.com.ocr.ocr_api.aggregate;
+package br.com.ocr.ocr_api.domain;
 
 import br.com.ocr.ocr_api.commands.*;
 import br.com.ocr.ocr_api.events.*;
-import br.com.ocr.ocr_api.model.AnalysisStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
@@ -89,7 +88,7 @@ public class ReceiptAnalysisAggregate {
             throw new RuntimeException("Job status should be 'PENDING_OCR' before before requesting AI analysis");
         }
 
-        apply(new AiAnalysisRequested(this.jobId, this.ocrJobId, cmd.getAnalyzedDocument(), AnalysisStatus.PENDING_AI, Instant.now()));
+        apply(new AiAnalysisRequested(this.jobId, cmd.getAnalyzedDocument(), AnalysisStatus.PENDING_AI, Instant.now()));
     }
 
     @EventSourcingHandler

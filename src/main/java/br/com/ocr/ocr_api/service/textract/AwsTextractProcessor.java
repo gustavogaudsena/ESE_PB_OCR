@@ -1,7 +1,10 @@
 package br.com.ocr.ocr_api.service.textract;
 
+import br.com.ocr.ocr_api.domain.AnalyzedDocument;
+import br.com.ocr.ocr_api.domain.DetectedField;
+import br.com.ocr.ocr_api.domain.LineItem;
 import br.com.ocr.ocr_api.dto.*;
-import br.com.ocr.ocr_api.model.AnalysisStatus;
+import br.com.ocr.ocr_api.domain.AnalysisStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

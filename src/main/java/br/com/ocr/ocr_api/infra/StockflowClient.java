@@ -1,6 +1,6 @@
 package br.com.ocr.ocr_api.infra;
 
-import br.com.ocr.ocr_api.dto.AiAnalyzedItem;
+import br.com.ocr.ocr_api.domain.AiAnalyzedItem;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

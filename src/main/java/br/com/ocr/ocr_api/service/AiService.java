@@ -2,12 +2,10 @@ package br.com.ocr.ocr_api.service;
 
 import br.com.ocr.ocr_api.commands.RegisterAiAnalysisFailed;
 import br.com.ocr.ocr_api.commands.RegisterAiResult;
-import br.com.ocr.ocr_api.dto.JobResponse;
+import br.com.ocr.ocr_api.domain.AnalyzedDocument;
+import br.com.ocr.ocr_api.infra.ReceiptAnalysisRepository;
 import br.com.ocr.ocr_api.infra.StockflowClient;
-import br.com.ocr.ocr_api.model.AiJob;
-import br.com.ocr.ocr_api.model.OcrJob;
-import br.com.ocr.ocr_api.repository.AiJobRepository;
-import br.com.ocr.ocr_api.repository.OcrJobRepository;
+import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import br.com.ocr.ocr_api.service.ai.AiProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,44 +19,37 @@ import java.io.IOException;
 @Slf4j
 public class AiService {
 
-    private final AiJobRepository aiJobRepository;
-    private final OcrJobRepository ocrJobRepository;
+    private final ReceiptAnalysisRepository repository;
     private final AiProcessor aiProcessor;
     private final CommandGateway command;
     private final StockflowClient stockflowClient;
 
-    public JobResponse startAnalysis(String jobId) throws IOException {
-        OcrJob ocrJob = ocrJobRepository.findById(jobId).orElseThrow(() -> new IOException("Job not found in database: " + jobId));
+    public void startAnalysis(String jobId, AnalyzedDocument document) throws IOException {
+        ReceiptAnalysis job = repository.findById(jobId).orElseThrow(() -> new IOException("Job not found in database: " + jobId));
 
-        AiJob newJob = new AiJob(jobId, ocrJob.getOcrJobId());
-        aiJobRepository.save(newJob);
-
-
-        aiProcessor.analyzeItemList(ocrJob.getResult().getLineItems(), newJob.getJobId())
+        aiProcessor.analyzeItemList(document.getLineItems(), jobId)
                 .thenAccept((result) -> {
-                    command.send(new RegisterAiResult(jobId, ocrJob.getOcrJobId(), result.getResult()));
+                    command.send(new RegisterAiResult(jobId, result));
                 })
                 .exceptionally(e -> {
-                    command.send(new RegisterAiAnalysisFailed(jobId, ocrJob.getOcrJobId(), e.getMessage()));
+                    command.send(new RegisterAiAnalysisFailed(jobId, e.getMessage()));
                     log.error("AI analysis failed for jobId {}", jobId);
                     return null;
                 });
-
-        return new JobResponse(newJob.getJobId());
     }
 
-    public AiJob getAnalysis(String jobId) {
-        return aiJobRepository.findById(jobId).orElseThrow();
+    public ReceiptAnalysis getAnalysis(String jobId) {
+        return repository.findById(jobId).orElseThrow();
     }
 
     public void createTransaction(String jobId) throws IOException {
-        AiJob aiJob = aiJobRepository.findById(jobId).orElseThrow();
+        ReceiptAnalysis aiJob = repository.findById(jobId).orElseThrow();
 
-        if (aiJob.getResult() == null) {
+        if (aiJob.getAiResult() == null) {
             throw new IOException("Analysis ocrResult should not be null");
         }
 
-        stockflowClient.createTransactionByList(aiJob.getResult());
+        stockflowClient.createTransactionByList(aiJob.getAiResult());
     }
 
 }

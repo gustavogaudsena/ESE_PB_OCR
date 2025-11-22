@@ -13,6 +13,5 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 public class RegisterAiAnalysisFailed {
     @TargetAggregateIdentifier
     private String jobId;
-    private String ocrJobId;
     private String message;
 }

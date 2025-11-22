@@ -1,6 +1,7 @@
 package br.com.ocr.ocr_api.dto;
 
-import br.com.ocr.ocr_api.model.AnalysisStatus;
+import br.com.ocr.ocr_api.domain.AnalysisStatus;
+import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import lombok.Getter;
 
 @Getter

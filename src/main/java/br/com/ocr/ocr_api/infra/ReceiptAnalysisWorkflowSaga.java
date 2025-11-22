@@ -44,16 +44,16 @@ public class ReceiptAnalysisWorkflowSaga {
     public void on(OcrAnalysisStarted event) throws IOException {
         log.info("Starting OCR analyze for {}", event.jobId());
 
-        JobResponse ocrJob = ocrService.startAnalyze(event.jobId(), event.fileIdentifier());
+        JobResponse ocrJob = ocrService.startAnalyze(event.jobId());
         command.send(new RegisterOcrAnalysis(event.jobId(), ocrJob.jobId()));
     }
 
     @SagaEventHandler(associationProperty = "jobId")
     public void on(AiAnalysisRequested event) throws IOException {
-        log.info("Ocr analysisCompleted for {} [Ocr job id: {}]", event.jobId(), event.ocrJobId());
+        log.info("Ocr analysisCompleted for {}", event.jobId());
         log.info("Starting AI analysis");
 
-        aiService.startAnalysis(event.jobId());
+        aiService.startAnalysis(event.jobId(), event.analyzedDocument());
     }
 
     @EndSaga

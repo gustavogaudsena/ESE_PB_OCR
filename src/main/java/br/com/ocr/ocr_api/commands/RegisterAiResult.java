@@ -1,6 +1,6 @@
 package br.com.ocr.ocr_api.commands;
 
-import br.com.ocr.ocr_api.dto.AiAnalyzedItem;
+import br.com.ocr.ocr_api.domain.AiAnalyzedItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +16,6 @@ import java.util.List;
 public class RegisterAiResult {
     @TargetAggregateIdentifier
     private String jobId;
-    private String ocrJobId;
     private List<AiAnalyzedItem> aiResult;
 
 }

@@ -1,4 +1,4 @@
-package br.com.ocr.ocr_api.model;
+package br.com.ocr.ocr_api.domain;
 
 public enum AnalysisStatus {
     CREATED,

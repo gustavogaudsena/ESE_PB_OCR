@@ -19,7 +19,7 @@ public class ReceiptAnalysisProjection {
     public void on(OcrAnalysisRequested event) {
         ReceiptAnalysis receiptAnalysis = new ReceiptAnalysis();
         receiptAnalysis.setId(event.jobId());
-        receiptAnalysis.setStatus(AnalysisStatus.CREATED);
+        receiptAnalysis.setStatus(event.status());
 
         repository.save(receiptAnalysis);
     }
@@ -27,7 +27,7 @@ public class ReceiptAnalysisProjection {
     @EventHandler
     public void on(OcrAnalysisStarted event) {
         ReceiptAnalysis receiptAnalysis = repository.findById(event.jobId()).orElseThrow();
-        receiptAnalysis.setStatus(AnalysisStatus.FILE_UPLOADED);
+        receiptAnalysis.setStatus(event.status());
         repository.save(receiptAnalysis);
     }
 
@@ -35,14 +35,14 @@ public class ReceiptAnalysisProjection {
     public void on(OcrAnalysisRegistered event) {
         ReceiptAnalysis receiptAnalysis = repository.findById(event.jobId()).orElseThrow();
         receiptAnalysis.setOcrJobId(event.ocrJobId());
-        receiptAnalysis.setStatus(AnalysisStatus.PENDING_OCR);
+        receiptAnalysis.setStatus(event.status());
         repository.save(receiptAnalysis);
     }
 
     @EventHandler
     public void on(AiAnalysisRequested event) {
         ReceiptAnalysis receiptAnalysis = repository.findById(event.jobId()).orElseThrow();
-        receiptAnalysis.setStatus(AnalysisStatus.PENDING_AI);
+        receiptAnalysis.setStatus(event.status());
         receiptAnalysis.setOcrResult(event.analyzedDocument());
         repository.save(receiptAnalysis);
     }
@@ -51,7 +51,7 @@ public class ReceiptAnalysisProjection {
     public void on(AiAnalysisCompleted event) {
         ReceiptAnalysis receiptAnalysis = repository.findById(event.jobId()).orElseThrow();
         receiptAnalysis.setAiResult(event.aiResult());
-        receiptAnalysis.setStatus(AnalysisStatus.COMPLETED);
+        receiptAnalysis.setStatus(event.status());
         repository.save(receiptAnalysis);
     }
 }

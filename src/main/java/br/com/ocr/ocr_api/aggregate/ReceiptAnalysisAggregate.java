@@ -40,13 +40,13 @@ public class ReceiptAnalysisAggregate {
         }
 
         String fileIdentifier = "file_" + cmd.getJobId();
-        apply(new OcrAnalysisRequested(cmd.getJobId(), cmd.getFileBytes(), fileIdentifier, Instant.now()));
+        apply(new OcrAnalysisRequested(cmd.getJobId(), cmd.getFileBytes(), fileIdentifier, AnalysisStatus.CREATED, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(OcrAnalysisRequested event) {
         this.jobId = event.jobId();
-        this.status = AnalysisStatus.CREATED;
+        this.status = event.status();
         this.fileIdentifier = event.fileIdentifier();
     }
 
@@ -56,12 +56,12 @@ public class ReceiptAnalysisAggregate {
             throw new RuntimeException("Job status should be on 'CREATED' to request OCR analysis");
         }
 
-        apply(new OcrAnalysisStarted(this.jobId, this.fileIdentifier, Instant.now()));
+        apply(new OcrAnalysisStarted(this.jobId, this.fileIdentifier, AnalysisStatus.FILE_UPLOADED, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(OcrAnalysisStarted event) {
-        this.status = AnalysisStatus.FILE_UPLOADED;
+        this.status = event.status();
     }
 
     @CommandHandler
@@ -74,14 +74,14 @@ public class ReceiptAnalysisAggregate {
             throw new IllegalArgumentException("OcrJobId id is required");
         }
 
-        apply(new OcrAnalysisRegistered(this.jobId, cmd.getOcrJobId(), Instant.now()));
+        apply(new OcrAnalysisRegistered(this.jobId, cmd.getOcrJobId(), AnalysisStatus.PENDING_OCR, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(OcrAnalysisRegistered event) {
         log.info("Ocr analysis started, waiting queue");
         this.ocrJobId = event.ocrJobId();
-        this.status = AnalysisStatus.PENDING_OCR;
+        this.status = event.status();
     }
 
     @CommandHandler
@@ -90,12 +90,12 @@ public class ReceiptAnalysisAggregate {
             throw new RuntimeException("Job status should be 'PENDING_OCR' before before requesting AI analysis");
         }
 
-        apply(new AiAnalysisRequested(this.jobId, this.ocrJobId, cmd.getAnalyzedDocument(), Instant.now()));
+        apply(new AiAnalysisRequested(this.jobId, this.ocrJobId, cmd.getAnalyzedDocument(), AnalysisStatus.PENDING_AI, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(AiAnalysisRequested event) {
-        this.status = AnalysisStatus.PENDING_AI;
+        this.status = event.status();
     }
 
     @CommandHandler
@@ -112,12 +112,12 @@ public class ReceiptAnalysisAggregate {
             throw new IllegalArgumentException("Ai result is required");
         }
 
-        apply(new AiAnalysisCompleted(this.jobId, this.ocrJobId, cmd.getAiJobId(), cmd.getAiResult(), Instant.now()));
+        apply(new AiAnalysisCompleted(this.jobId, this.ocrJobId, cmd.getAiJobId(), cmd.getAiResult(),AnalysisStatus.COMPLETED, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(AiAnalysisCompleted event) {
         this.aiJobId = event.aiJobId();
-        this.status = AnalysisStatus.COMPLETED;
+        this.status = event.status();
     }
 }

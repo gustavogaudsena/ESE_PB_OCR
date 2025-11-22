@@ -1,5 +1,6 @@
 package br.com.ocr.ocr_api.commands;
 
+import br.com.ocr.ocr_api.dto.AnalyzedDocument;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,4 +15,5 @@ public class RequestAiAnalysis {
     @TargetAggregateIdentifier
     private String jobId;
     private String ocrJobId;
+    private AnalyzedDocument analyzedDocument;
 }

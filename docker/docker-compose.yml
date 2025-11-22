@@ -27,6 +27,43 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: user-web-pass
     depends_on:
       - mongodb
+  axonserver:
+    image: axoniq/axonserver
+    container_name: ocr-axonserver
+    restart: unless-stopped
+    ports:
+      - "8024:8024"
+      - "8124:8124"
+    environment:
+      AXONSERVER_NAME: axonserver
+      AXONSERVER_HOSTNAME: axonserver
+      AXONSERVER_DEVMODE_ENABLED: "true"
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c '</dev/tcp/localhost/8124" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [ ocr-net ]
+  redis:
+    image: redis:7-alpine
+    container_name: ocr-redis
+    ports:
+      - "6379:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "PING" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [ ocr-net ]
+
+networks:
+  ocr-net:
+    driver: bridge
+
 volumes:
+  axon-data: { }
+  axon-events: { }
+  axon-config: { }
   mongo-data:
     driver: local

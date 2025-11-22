@@ -1,6 +1,7 @@
 package br.com.ocr.ocr_api.infra;
 
 import br.com.ocr.ocr_api.commands.RequestAiAnalysis;
+import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
 import br.com.ocr.ocr_api.model.OcrJob;
 import br.com.ocr.ocr_api.repository.OcrJobRepository;
 import br.com.ocr.ocr_api.service.OcrService;
@@ -50,10 +51,10 @@ public class TextractSqsListener {
 
         if ("SUCCEEDED".equals(status)) {
             try {
-                ocrService.getProcessorJobRequest(jobId);
-                command.send(new RequestAiAnalysis(jobId, ocrJobId));
+                OcrProcessorResponse resp = ocrService.getProcessorJobRequest(jobId);
+                command.send(new RequestAiAnalysis(jobId, ocrJobId, resp.getDocument()));
             } catch (Exception e) {
-                log.error("SQS: Failed get Ocr result for a COMPLETED [{}].", ocrJobId, e);
+                log.error("SQS: Failed get Ocr ocrResult for a COMPLETED [{}].", ocrJobId, e);
             }
         }
 

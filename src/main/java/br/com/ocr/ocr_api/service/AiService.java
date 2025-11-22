@@ -34,7 +34,7 @@ public class AiService {
 
         aiProcessor.analyzeItemList(ocrJob.getResult().getLineItems(), newJob.getJobId())
                 .thenAccept((result) -> {
-                    command.send(new RegisterAiResult(jobId, ocrJob.getOcrJobId(), result.getAiJobId()));
+                    command.send(new RegisterAiResult(jobId, ocrJob.getOcrJobId(), result.getAiJobId(), result.getResult()));
                 })
                 .exceptionally(e -> {
                     log.error("AI analysis failed for jobId {}", jobId);
@@ -52,7 +52,7 @@ public class AiService {
         AiJob aiJob = aiJobRepository.findById(jobId).orElseThrow();
 
         if (aiJob.getResult() == null) {
-            throw new IOException("Analysis result should not be null");
+            throw new IOException("Analysis ocrResult should not be null");
         }
 
         stockflowClient.createTransactionByList(aiJob.getResult());

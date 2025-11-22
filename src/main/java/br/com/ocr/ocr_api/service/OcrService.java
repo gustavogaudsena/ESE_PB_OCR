@@ -22,9 +22,10 @@ public class OcrService {
     @Value("${aws.config.bucket-name}")
     private String bucketName;
 
-    public JobResponse startAnalyze(String jobId) throws IOException {
+    public JobResponse startAnalyze(String jobId, String fileIdentifier) throws IOException {
         ReceiptAnalysis job = repository.findById(jobId).orElseThrow(() -> new IOException("Job not found in database"));
-        return ocrProcessor.startJob(bucketName, job.getFileIdentifier());
+
+        return ocrProcessor.startJob(bucketName, fileIdentifier);
     }
 
     public OcrProcessorResponse getProcessorJobRequest(String jobId) throws IOException {

@@ -2,6 +2,7 @@ package br.com.ocr.ocr_api.service;
 
 import br.com.ocr.ocr_api.commands.RegisterAiAnalysisFailed;
 import br.com.ocr.ocr_api.commands.RegisterAiResult;
+import br.com.ocr.ocr_api.domain.AiAnalyzedItem;
 import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import br.com.ocr.ocr_api.infra.ReceiptAnalysisRepository;
 import br.com.ocr.ocr_api.infra.StockflowClient;
@@ -13,6 +14,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +27,21 @@ public class AiService {
     private final StockflowClient stockflowClient;
 
     public void startAnalysis(String jobId, AnalyzedDocument document) throws IOException {
+        aiProcessor.analyzeItemList(document.getLineItems())
+                .thenAccept((result) -> {
+                    command.send(new RegisterAiResult(jobId, result));
+                })
+                .exceptionally(e -> {
+                    command.send(new RegisterAiAnalysisFailed(jobId, e.getMessage()));
+                    log.error("AI analysis failed for jobId {}", jobId);
+                    return null;
+                });
+    }
+
+    public void startAnalysis(String jobId) throws IOException {
         ReceiptAnalysis job = repository.findById(jobId).orElseThrow(() -> new IOException("Job not found in database: " + jobId));
 
-        aiProcessor.analyzeItemList(document.getLineItems(), jobId)
+        aiProcessor.analyzeItemList(job.getOcrResult().getLineItems())
                 .thenAccept((result) -> {
                     command.send(new RegisterAiResult(jobId, result));
                 })
@@ -40,6 +54,10 @@ public class AiService {
 
     public ReceiptAnalysis getAnalysis(String jobId) {
         return repository.findById(jobId).orElseThrow();
+    }
+
+    public void createTransaction(List<AiAnalyzedItem> aiResult) throws IOException {
+        stockflowClient.createTransactionByList(aiResult);
     }
 
     public void createTransaction(String jobId) throws IOException {

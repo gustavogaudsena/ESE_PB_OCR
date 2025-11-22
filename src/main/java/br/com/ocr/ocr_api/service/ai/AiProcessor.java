@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AiProcessor {
-    CompletableFuture<List<AiAnalyzedItem>> analyzeItemList(List<LineItem> lineItems, String jobId);
+    CompletableFuture<List<AiAnalyzedItem>> analyzeItemList(List<LineItem> lineItems);
 }

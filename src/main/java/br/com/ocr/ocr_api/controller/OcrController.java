@@ -48,8 +48,10 @@ public class OcrController {
     @PostMapping("/ai/{jobId}")
     public JobResponse startAiAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
         log.info("AI analyses of OcrJobId={}", jobId);
+
+        aiService.startAnalysis(jobId);
+
         return new JobResponse(jobId);
-//        return aiService.startAnalysis(jobId);
     }
 
     @GetMapping("/ai/{jobId}")

@@ -44,7 +44,7 @@ public class ReceiptAnalysisWorkflowSaga {
     public void on(OcrAnalysisStarted event) throws IOException {
         log.info("Starting OCR analyze for {}", event.jobId());
 
-        JobResponse ocrJob = ocrService.startAnalyze(event.jobId());
+        JobResponse ocrJob = ocrService.startAnalyze(event.jobId(), event.fileIdentifier());
         command.send(new RegisterOcrAnalysis(event.jobId(), ocrJob.jobId()));
     }
 
@@ -60,7 +60,8 @@ public class ReceiptAnalysisWorkflowSaga {
     @SagaEventHandler(associationProperty = "jobId")
     public void on(AiAnalysisCompleted event) throws IOException {
         log.info("AI analysis completed for job {}", event.jobId());
-        aiService.createTransaction(event.jobId());
+        log.info("Creating transaction based on Ai Analysis for job {}", event.jobId());
+        aiService.createTransaction(event.aiResult());
     }
 
 }

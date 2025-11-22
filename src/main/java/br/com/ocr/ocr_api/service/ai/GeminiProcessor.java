@@ -32,7 +32,7 @@ public class GeminiProcessor implements AiProcessor {
     }
 
     @Async
-    public CompletableFuture<List<AiAnalyzedItem>> analyzeItemList(List<LineItem> lineItems, String jobId) {
+    public CompletableFuture<List<AiAnalyzedItem>> analyzeItemList(List<LineItem> lineItems) {
         try {
             Schema schema = Schema.builder()
                     .example(List.of(AiAnalyzedItem.class))

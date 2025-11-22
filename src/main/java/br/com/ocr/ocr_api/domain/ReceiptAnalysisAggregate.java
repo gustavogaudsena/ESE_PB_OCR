@@ -53,7 +53,6 @@ public class ReceiptAnalysisAggregate {
         if (this.status != AnalysisStatus.CREATED) {
             throw new RuntimeException("Job status should be on 'CREATED' to request OCR analysis");
         }
-
         apply(new OcrAnalysisStarted(this.jobId, this.fileIdentifier, AnalysisStatus.FILE_UPLOADED, Instant.now()));
     }
 
@@ -120,7 +119,7 @@ public class ReceiptAnalysisAggregate {
             throw new RuntimeException("Job status should be 'PENDING_AI' before before registering AI Failed Command");
         }
 
-        String message = cmd.getMessage() != null ?  cmd.getMessage() : "Message not avaible";
+        String message = cmd.getMessage() != null ? cmd.getMessage() : "Message not avaible";
 
         apply(new AiAnalysisFailed(this.jobId, message, AnalysisStatus.FAILED, Instant.now()));
     }

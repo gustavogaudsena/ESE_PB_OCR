@@ -1,6 +1,7 @@
 package br.com.ocr.ocr_api.infra;
 
 import br.com.ocr.ocr_api.commands.RegisterOcrAnalysis;
+import br.com.ocr.ocr_api.commands.RegisterOcrFailure;
 import br.com.ocr.ocr_api.commands.StartOcrAnalysis;
 import br.com.ocr.ocr_api.dto.JobResponse;
 import br.com.ocr.ocr_api.events.*;
@@ -38,18 +39,32 @@ public class ReceiptAnalysisWorkflowSaga {
     @StartSaga
     @SagaEventHandler(associationProperty = "jobId")
     public void on(OcrAnalysisRequested event) {
-        log.info("Requesting analysis for {}", event.jobId());
-        storageService.upload(event.fileBytes(), event.fileIdentifier());
+        try {
+            log.info("Requesting analysis for {}", event.jobId());
+            storageService.upload(event.fileBytes(), event.fileIdentifier());
 
-        command.send(new StartOcrAnalysis(event.jobId(), event.fileIdentifier()));
+            command.send(new StartOcrAnalysis(event.jobId(), event.fileIdentifier()));
+
+        } catch (Exception e) {
+            log.error("Failed to upload file for {}", event.jobId(), e);
+
+            command.send(new RegisterOcrFailure(event.jobId(), "Upload failed: " + e.getMessage()));
+        }
     }
 
     @SagaEventHandler(associationProperty = "jobId")
     public void on(OcrAnalysisStarted event) throws IOException {
-        log.info("Starting OCR analyze for {}", event.jobId());
+        try {
+            log.info("Starting OCR analyze for {}", event.jobId());
 
-        JobResponse ocrJob = ocrService.startAnalyze(event.jobId(), event.fileIdentifier());
-        command.send(new RegisterOcrAnalysis(event.jobId(), ocrJob.jobId()));
+            JobResponse ocrJob = ocrService.startAnalyze(event.jobId(), event.fileIdentifier());
+            command.send(new RegisterOcrAnalysis(event.jobId(), ocrJob.jobId()));
+
+        } catch (Exception e) {
+            log.error("Failed to start OCR analyze {}", event.jobId(), e);
+
+            command.send(new RegisterOcrFailure(event.jobId(), "OCR start failed: " + e.getMessage()));
+        }
     }
 
     @SagaEventHandler(associationProperty = "jobId")
@@ -66,7 +81,18 @@ public class ReceiptAnalysisWorkflowSaga {
         log.info("AI analysis completed for job {}", event.jobId());
         log.info("Creating transaction based on Ai Analysis for job {}", event.jobId());
 
-        streamBridge.send( "aiAnalysisOutput-out-0", event);
+        streamBridge.send("aiAnalysisOutput-out-0", event);
     }
 
+    @EndSaga
+    @SagaEventHandler(associationProperty = "jobId")
+    public void on(AiAnalysisFailed event) throws IOException {
+        log.info("Analysis ended due to AI phase failure: {}", event.message());
+    }
+
+    @EndSaga
+    @SagaEventHandler(associationProperty = "jobId")
+    public void on(OcrAnalysisFailed event) {
+        log.info("Analysis ended due to OCR phase failure: {}", event.message());
+    }
 }

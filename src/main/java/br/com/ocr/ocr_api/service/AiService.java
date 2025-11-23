@@ -1,6 +1,6 @@
 package br.com.ocr.ocr_api.service;
 
-import br.com.ocr.ocr_api.commands.RegisterAiAnalysisFailed;
+import br.com.ocr.ocr_api.commands.RegisterAiFailure;
 import br.com.ocr.ocr_api.commands.RegisterAiResult;
 import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import br.com.ocr.ocr_api.infra.ReceiptAnalysisRepository;
@@ -12,7 +12,6 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +28,7 @@ public class AiService {
                     command.send(new RegisterAiResult(jobId, result));
                 })
                 .exceptionally(e -> {
-                    command.send(new RegisterAiAnalysisFailed(jobId, e.getMessage()));
+                    command.send(new RegisterAiFailure(jobId, e.getMessage()));
                     log.error("AI analysis failed for jobId {}", jobId);
                     return null;
                 });
@@ -43,7 +42,7 @@ public class AiService {
                     command.send(new RegisterAiResult(jobId, result));
                 })
                 .exceptionally(e -> {
-                    command.send(new RegisterAiAnalysisFailed(jobId, e.getMessage()));
+                    command.send(new RegisterAiFailure(jobId, e.getMessage()));
                     log.error("AI analysis failed for jobId {}", jobId);
                     return null;
                 });

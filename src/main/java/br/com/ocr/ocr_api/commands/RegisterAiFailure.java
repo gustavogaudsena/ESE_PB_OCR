@@ -10,7 +10,7 @@ import org.axonframework.modelling.command.TargetAggregateIdentifier;
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
-public class RegisterAiAnalysisFailed {
+public class RegisterAiFailure {
     @TargetAggregateIdentifier
     private String jobId;
     private String message;

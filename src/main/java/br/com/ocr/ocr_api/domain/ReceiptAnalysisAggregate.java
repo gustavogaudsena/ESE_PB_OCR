@@ -84,6 +84,16 @@ public class ReceiptAnalysisAggregate {
     }
 
     @CommandHandler
+    public void handle(RegisterOcrFailure cmd) {
+        apply(new OcrAnalysisFailed(this.jobId, cmd.getMessage(), AnalysisStatus.FAILED, Instant.now()));
+    }
+
+    @EventSourcingHandler
+    public void on(OcrAnalysisFailed event) {
+        this.status = event.status();
+    }
+
+    @CommandHandler
     public void handle(RequestAiAnalysis cmd) {
         if (this.status != AnalysisStatus.PENDING_OCR) {
             throw new RuntimeException("Job status should be 'PENDING_OCR' before before requesting AI analysis");
@@ -116,7 +126,7 @@ public class ReceiptAnalysisAggregate {
     }
 
     @CommandHandler
-    public void handle(RegisterAiAnalysisFailed cmd) {
+    public void handle(RegisterAiFailure cmd) {
         if (this.status != AnalysisStatus.PENDING_AI) {
             throw new RuntimeException("Job status should be 'PENDING_AI' before before registering AI Failed Command");
         }

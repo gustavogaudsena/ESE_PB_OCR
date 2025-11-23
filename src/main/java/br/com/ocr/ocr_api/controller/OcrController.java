@@ -30,10 +30,8 @@ public class OcrController {
 
     @PostMapping
     public JobResponse startOcrAnalysis(@RequestParam("receipt") MultipartFile file, @AuthenticationPrincipal Jwt jwt) throws IOException {
-        log.info("Starting recipt analysis...");
         String jobId = UUID.randomUUID().toString();
         String userId = jwt.getClaimAsString("sub");
-
         command.send(new RequestOcrAnalysis(jobId, file.getBytes(), userId));
 
         return new JobResponse(jobId);

@@ -1,5 +1,6 @@
 package br.com.ocr.ocr_api.infra;
 
+import br.com.ocr.ocr_api.commands.RegisterOcrFailure;
 import br.com.ocr.ocr_api.commands.RequestAiAnalysis;
 import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
 import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
@@ -53,8 +54,11 @@ public class TextractSqsListener {
                 OcrProcessorResponse resp = ocrService.getProcessorJobRequest(jobId);
                 command.send(new RequestAiAnalysis(jobId, ocrJobId, resp.getDocument()));
             } catch (Exception e) {
-                log.error("SQS: Failed get Ocr ocrResult for a COMPLETED [{}].", ocrJobId, e);
+                log.error("SQS: Failed processing results for [{}].", ocrJobId, e);
+                command.send(new RegisterOcrFailure(jobId, "Failed to retrieve OCR results: " + e.getMessage()));
             }
+        } else if ("FAILED".equals(status)) {
+            command.send(new RegisterOcrFailure(jobId, "OCR service provider failure"));
         }
 
     }

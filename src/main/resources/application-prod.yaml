@@ -10,10 +10,14 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak-cluster.stockflow.svc.cluster.local:8000/realms/stockflow
+          issuer-uri: ${AUTH_ISSUER_URI:http://localhost:30900/realms/stockflow}
+          jwk-set-uri: http://keycloak-cluster.stockflow.svc.cluster.local:8000/realms/stockflow/protocol/openid-connect/certs
   data:
     mongodb:
       uri: mongodb://admin:password@mongodb-cluster.stockflow.svc.cluster.local:27017/ocr_db?authSource=admin
+    redis:
+      host: redis.stockflow.svc.cluster.local
+      port: 6379
   cloud:
     aws:
       region:

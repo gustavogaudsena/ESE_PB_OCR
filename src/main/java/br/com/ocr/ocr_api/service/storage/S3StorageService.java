@@ -1,5 +1,6 @@
 package br.com.ocr.ocr_api.service.storage;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -23,6 +24,7 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
+    @CircuitBreaker(name="external")
     public Object upload(byte[] fileBytes, String key) {
         log.info("Uploading file: {}", key);
 

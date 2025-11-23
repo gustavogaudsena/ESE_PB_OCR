@@ -5,6 +5,7 @@ import br.com.ocr.ocr_api.domain.DetectedField;
 import br.com.ocr.ocr_api.domain.LineItem;
 import br.com.ocr.ocr_api.dto.*;
 import br.com.ocr.ocr_api.domain.AnalysisStatus;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,6 +47,7 @@ public class AwsTextractProcessor implements OcrProcessorInterface {
         return buildAnalyzedDocument(response.expenseDocuments());
     }
 
+    @CircuitBreaker(name = "external")
     public JobResponse startJob(String bucketName, String key) {
         S3Object s3Object = S3Object.builder()
                 .bucket(bucketName)
@@ -72,6 +74,7 @@ public class AwsTextractProcessor implements OcrProcessorInterface {
         return new JobResponse(resp.jobId());
     }
 
+    @CircuitBreaker(name = "external")
     public OcrProcessorResponse getJobResult(String jobId) throws IOException {
         GetExpenseAnalysisRequest request = GetExpenseAnalysisRequest.builder()
                 .jobId(jobId)

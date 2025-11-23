@@ -1,0 +1,94 @@
+spring:
+  application:
+    name: ocr-api
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8000/realms/stockflow
+  data:
+    mongodb:
+      uri: mongodb://admin:password@localhost:27017/ocr_db?authSource=admin
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+    consul:
+      loadbalancer:
+        health-check:
+          enabled: true
+      host: localhost
+      port: 8500
+      discovery:
+        register: true
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 5s
+    stream:
+      defaultBinder: rabbit
+      bindings:
+        aiAnalysisOutput-out-0:
+          destination: ai.analysis.completed
+          content-type: application/json
+server:
+  port: 8001
+aws:
+  config:
+    bucket-name: stockflow-textract-dev-us
+    sns-topic-arn: arn:aws:sns:us-east-1:730335644962:AmazonTextractOcrCompletionTopic
+    iam-role-arn: arn:aws:iam::730335644962:role/TextractNotificationRole
+gemini:
+  config:
+    api-key: ${GEMINI_API_KEY}
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 70ms
+        retryExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+    instances:
+      internal:
+        baseConfig: default
+      external:
+        baseConfig: default
+        waitDuration: 1s
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+    instances:
+      internal:
+        baseConfig: default
+        waitDurationInOpenState: 10ms
+      external:
+        baseConfig: default
+        waitDurationInOpenState: 20s
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 100ms
+        cancelRunningFuture: true
+    instances:
+      internal:
+        baseConfig: default
+      external:
+        baseConfig: default
+
+axon:
+  axonserver:
+    servers: localhost:8124
+  serializer:
+    general: jackson
+    events: jackson
+    messages: jackson

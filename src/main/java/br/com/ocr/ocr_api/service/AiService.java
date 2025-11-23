@@ -28,8 +28,8 @@ public class AiService {
                     command.send(new RegisterAiResult(jobId, result));
                 })
                 .exceptionally(e -> {
+                    log.error("AI analysis failed for jobId {}, {}", jobId, e.getMessage());
                     command.send(new RegisterAiFailure(jobId, e.getMessage()));
-                    log.error("AI analysis failed for jobId {}", jobId);
                     return null;
                 });
     }

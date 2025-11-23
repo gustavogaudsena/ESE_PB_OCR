@@ -7,8 +7,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.*;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -17,22 +20,25 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Slf4j
 public class GeminiProcessor implements AiProcessor {
 
     private final Client client;
     private final ObjectMapper objectMapper;
-    private final ReceiptAnalysisRepository repository;
 
-    public GeminiProcessor(@Value("${gemini.config.api-key}") String apiKey, ReceiptAnalysisRepository repository, ObjectMapper objectMapper) {
+    public GeminiProcessor(@Value("${gemini.config.api-key}") String apiKey, ObjectMapper objectMapper) {
         client = Client.builder()
                 .apiKey(apiKey)
                 .build();
         this.objectMapper = objectMapper;
-        this.repository = repository;
     }
 
     @Async
+    @Retry(name = "external")
+    @CircuitBreaker(name = "external")
     public CompletableFuture<List<AiAnalyzedItem>> analyzeItemList(List<LineItem> lineItems) {
+        log.info("Iniciando chamada a AI (Gemini). Thread: {}", Thread.currentThread().getName());
+
         try {
             Schema schema = Schema.builder()
                     .example(List.of(AiAnalyzedItem.class))
@@ -146,6 +152,7 @@ public class GeminiProcessor implements AiProcessor {
 
             return CompletableFuture.completedFuture(aiAnalyzedList);
         } catch (Exception e) {
+            log.warn("Erro ao chamar Gemini: {}.", e.getMessage());
             return CompletableFuture.failedFuture(e);
         }
     }

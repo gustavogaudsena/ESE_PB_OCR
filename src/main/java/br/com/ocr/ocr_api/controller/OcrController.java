@@ -1,6 +1,9 @@
 package br.com.ocr.ocr_api.controller;
 
 import br.com.ocr.ocr_api.commands.RequestOcrAnalysis;
+import br.com.ocr.ocr_api.commands.RetryAnalysis;
+import br.com.ocr.ocr_api.domain.AiAnalyzedItem;
+import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import br.com.ocr.ocr_api.dto.JobResponse;
 import br.com.ocr.ocr_api.dto.OcrProcessorResponse;
 import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
@@ -10,15 +13,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @RestController
@@ -29,47 +37,37 @@ public class OcrController {
     private final CommandGateway command;
 
     @PostMapping
-    public JobResponse startOcrAnalysis(@RequestParam("receipt") MultipartFile file, @AuthenticationPrincipal Jwt jwt) throws IOException {
+    public ResponseEntity<JobResponse> startOcrAnalysis(@RequestParam("receipt") MultipartFile file, @AuthenticationPrincipal Jwt jwt) throws IOException {
         String jobId = UUID.randomUUID().toString();
         String userId = jwt.getClaimAsString("sub");
         command.send(new RequestOcrAnalysis(jobId, file.getBytes(), userId));
 
-        return new JobResponse(jobId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new JobResponse(jobId));
     }
 
-    @PostMapping("/{jobId}")
-    public void createTransactionByAiAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
-        log.info("Retryng AI analysis jobId: {}", jobId);
+    @PostMapping("/retry/{jobId}")
+    public ResponseEntity<Void> retryAnalysis(@PathVariable String jobId) {
+        if (jobId == null || jobId.isBlank()) {
+            throw new IllegalArgumentException("JobId é obrigatório");
+        }
+        command.sendAndWait(new RetryAnalysis(jobId));
+        return ResponseEntity.accepted().build();
+
+    }
+
+    @GetMapping("/ocr/{jobId}")
+    public ResponseEntity<AnalyzedDocument> getOcrAnalysis(@PathVariable String jobId) {
+        return ResponseEntity.ok().body(ocrService.getAnalysis(jobId));
     }
 
     @GetMapping("/{jobId}")
-    public OcrProcessorResponse getOcrAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
-        log.info("Getting Recipt analysis jobId={}", jobId);
-        return ocrService.getProcessorJobRequest(jobId);
-    }
-
-    @PostMapping("/ai/{jobId}")
-    public JobResponse startAiAnalysis(@PathVariable String jobId) throws IOException, ExecutionException, InterruptedException {
-        log.info("AI analyses of OcrJobId={}", jobId);
-
-        aiService.startAnalysis(jobId);
-
-        return new JobResponse(jobId);
+    public ResponseEntity<ReceiptAnalysis> getFullAnalysis(@PathVariable String jobId) {
+        return ResponseEntity.ok().body(ocrService.getFullAnalysis(jobId));
     }
 
     @GetMapping("/ai/{jobId}")
-    public ReceiptAnalysis getAiAnalysis(@PathVariable String jobId) {
-        log.info("Getting AI Recipt analysis do JobId={}", jobId);
-        return aiService.getAnalysis(jobId);
-    }
-
-    @GetMapping("/me")
-    public Map<String, Object> me(@AuthenticationPrincipal Jwt jwt) {
-        return Map.of(
-                "userId", jwt.getClaimAsString("sub"),
-                "username", jwt.getClaimAsString("preferred_username"),
-                "email", jwt.getClaimAsString("email")
-        );
+    public ResponseEntity<List<AiAnalyzedItem>> getAiAnalysis(@PathVariable String jobId) {
+        return ResponseEntity.ok().body(aiService.getAnalysis(jobId));
     }
 
 }

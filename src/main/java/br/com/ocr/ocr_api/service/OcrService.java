@@ -33,7 +33,7 @@ public class OcrService {
         ReceiptAnalysis job = repository.findById(jobId)
                 .orElseThrow(() -> new IOException("Job not found in database"));
 
-        if (job.getStatus() == AnalysisStatus.COMPLETED) {
+        if (job.getOcrResult() != null) {
             return new OcrProcessorResponse(job.getOcrResult());
         }
 
@@ -56,8 +56,12 @@ public class OcrService {
         };
     }
 
-    public OcrProcessorResponse fallback1(Throwable e) {
-        System.out.println(e.getMessage());
-        return new OcrProcessorResponse(AnalysisStatus.CREATED, "Job is still in progress.");
+    public AnalyzedDocument getAnalysis(String jobId) {
+        return this.repository.findById(jobId).map(ReceiptAnalysis::getOcrResult).orElseThrow();
     }
+
+    public ReceiptAnalysis getFullAnalysis(String jobId) {
+        return this.repository.findById(jobId).orElseThrow();
+    }
+
 }

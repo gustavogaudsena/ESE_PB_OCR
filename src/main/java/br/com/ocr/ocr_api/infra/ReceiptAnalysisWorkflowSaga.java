@@ -52,6 +52,7 @@ public class ReceiptAnalysisWorkflowSaga {
         }
     }
 
+    @StartSaga
     @SagaEventHandler(associationProperty = "jobId")
     public void on(OcrAnalysisStarted event) throws IOException {
         try {
@@ -67,6 +68,7 @@ public class ReceiptAnalysisWorkflowSaga {
         }
     }
 
+    @StartSaga
     @SagaEventHandler(associationProperty = "jobId")
     public void on(AiAnalysisRequested event) throws IOException {
         log.info("Ocr analysisCompleted for {}", event.jobId());

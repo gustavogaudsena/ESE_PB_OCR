@@ -23,6 +23,7 @@ public class ReceiptAnalysisAggregate {
     private String userId;
     private AnalysisStatus status;
     private String fileIdentifier;
+    private AnalyzedDocument analyzedDocument;
 
     protected ReceiptAnalysisAggregate() {
     }
@@ -105,6 +106,7 @@ public class ReceiptAnalysisAggregate {
     @EventSourcingHandler
     public void on(AiAnalysisRequested event) {
         this.status = event.status();
+        this.analyzedDocument = event.analyzedDocument();
     }
 
     @CommandHandler
@@ -139,5 +141,32 @@ public class ReceiptAnalysisAggregate {
     @EventSourcingHandler
     public void on(AiAnalysisFailed event) {
         this.status = event.status();
+    }
+
+    @CommandHandler
+    public void handle(RetryAnalysis cmd) {
+        if (this.status != AnalysisStatus.FAILED) {
+            throw new RuntimeException("Only failed jobs can be retried");
+        }
+
+        if (this.analyzedDocument != null) {
+            log.info("Retrying AI Analysis for Job {}", this.jobId);
+
+            apply(new AiAnalysisRequested(this.jobId, this.analyzedDocument, AnalysisStatus.PENDING_AI, Instant.now()));
+            return;
+        }
+
+        log.info("AnalyzedDocument not found. Requesting OCR.");
+
+        if (this.fileIdentifier != null && !this.fileIdentifier.isBlank()) {
+            log.info("File identifier found. Skipping Upload phase and restarting OCR.");
+
+            apply(new OcrAnalysisStarted(this.jobId, this.fileIdentifier, AnalysisStatus.FILE_UPLOADED, Instant.now()));
+            return;
+        }
+
+        log.info("FileIdentifier not found. Retry failed.");
+
+        throw new IllegalStateException("Cannot retry. Create a new request.");
     }
 }

@@ -56,12 +56,25 @@ services:
       timeout: 3s
       retries: 30
     networks: [ ocr-net ]
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    hostname: "rabbitmq"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: 'guest'
+      RABBITMQ_DEFAULT_PASS: 'guest'
+
 
 networks:
   ocr-net:
     driver: bridge
 
 volumes:
+  rabbitmq_data:
   axon-data: { }
   axon-events: { }
   axon-config: { }

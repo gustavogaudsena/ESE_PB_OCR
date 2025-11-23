@@ -15,6 +15,7 @@ import org.axonframework.modelling.saga.SagaEventHandler;
 import org.axonframework.modelling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.function.StreamBridge;
 
 import java.io.IOException;
 
@@ -30,6 +31,9 @@ public class ReceiptAnalysisWorkflowSaga {
     private StorageService storageService;
     @Autowired
     private transient CommandGateway command;
+
+    @Autowired
+    private transient StreamBridge streamBridge;
 
     @StartSaga
     @SagaEventHandler(associationProperty = "jobId")
@@ -61,7 +65,8 @@ public class ReceiptAnalysisWorkflowSaga {
     public void on(AiAnalysisCompleted event) throws IOException {
         log.info("AI analysis completed for job {}", event.jobId());
         log.info("Creating transaction based on Ai Analysis for job {}", event.jobId());
-        aiService.createTransaction(event.aiResult());
+
+        streamBridge.send( "aiAnalysisOutput-out-0", event);
     }
 
 }

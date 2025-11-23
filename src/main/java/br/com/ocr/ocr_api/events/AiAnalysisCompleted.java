@@ -9,7 +9,7 @@ import java.util.List;
 public record AiAnalysisCompleted(
         String jobId,
         List<AiAnalyzedItem> aiResult,
+        String userId,
         AnalysisStatus status,
         Instant ts
-
 ) {}

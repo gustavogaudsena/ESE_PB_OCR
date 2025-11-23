@@ -2,10 +2,8 @@ package br.com.ocr.ocr_api.service;
 
 import br.com.ocr.ocr_api.commands.RegisterAiAnalysisFailed;
 import br.com.ocr.ocr_api.commands.RegisterAiResult;
-import br.com.ocr.ocr_api.domain.AiAnalyzedItem;
 import br.com.ocr.ocr_api.domain.AnalyzedDocument;
 import br.com.ocr.ocr_api.infra.ReceiptAnalysisRepository;
-import br.com.ocr.ocr_api.infra.StockflowClient;
 import br.com.ocr.ocr_api.domain.ReceiptAnalysis;
 import br.com.ocr.ocr_api.service.ai.AiProcessor;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,6 @@ public class AiService {
     private final ReceiptAnalysisRepository repository;
     private final AiProcessor aiProcessor;
     private final CommandGateway command;
-    private final StockflowClient stockflowClient;
 
     public void startAnalysis(String jobId, AnalyzedDocument document) throws IOException {
         aiProcessor.analyzeItemList(document.getLineItems())
@@ -55,19 +52,4 @@ public class AiService {
     public ReceiptAnalysis getAnalysis(String jobId) {
         return repository.findById(jobId).orElseThrow();
     }
-
-    public void createTransaction(List<AiAnalyzedItem> aiResult) throws IOException {
-        stockflowClient.createTransactionByList(aiResult);
-    }
-
-    public void createTransaction(String jobId) throws IOException {
-        ReceiptAnalysis aiJob = repository.findById(jobId).orElseThrow();
-
-        if (aiJob.getAiResult() == null) {
-            throw new IOException("Analysis ocrResult should not be null");
-        }
-
-        stockflowClient.createTransactionByList(aiJob.getAiResult());
-    }
-
 }

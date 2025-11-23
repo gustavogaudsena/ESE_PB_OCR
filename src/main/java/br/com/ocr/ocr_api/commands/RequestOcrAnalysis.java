@@ -14,4 +14,5 @@ public class RequestOcrAnalysis {
     @TargetAggregateIdentifier
     private String jobId;
     private byte[] fileBytes;
+    private String userId;
 }

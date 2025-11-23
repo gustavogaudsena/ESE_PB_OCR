@@ -20,6 +20,7 @@ public class ReceiptAnalysisAggregate {
     @AggregateIdentifier
     private String jobId;
     private String ocrJobId;
+    private String userId;
     private AnalysisStatus status;
     private String fileIdentifier;
 
@@ -38,13 +39,14 @@ public class ReceiptAnalysisAggregate {
         }
 
         String fileIdentifier = "file_" + cmd.getJobId();
-        apply(new OcrAnalysisRequested(cmd.getJobId(), cmd.getFileBytes(), fileIdentifier, AnalysisStatus.CREATED, Instant.now()));
+        apply(new OcrAnalysisRequested(cmd.getJobId(), cmd.getFileBytes(), cmd.getUserId(), fileIdentifier, AnalysisStatus.CREATED, Instant.now()));
     }
 
     @EventSourcingHandler
     public void on(OcrAnalysisRequested event) {
         this.jobId = event.jobId();
         this.status = event.status();
+        this.userId = event.userId();
         this.fileIdentifier = event.fileIdentifier();
     }
 
@@ -105,7 +107,7 @@ public class ReceiptAnalysisAggregate {
             throw new IllegalArgumentException("Ai result is required");
         }
 
-        apply(new AiAnalysisCompleted(this.jobId, cmd.getAiResult(), AnalysisStatus.COMPLETED, Instant.now()));
+        apply(new AiAnalysisCompleted(this.jobId, cmd.getAiResult(), this.userId, AnalysisStatus.COMPLETED, Instant.now()));
     }
 
     @EventSourcingHandler

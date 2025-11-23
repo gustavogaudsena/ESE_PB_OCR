@@ -4,6 +4,6 @@ import br.com.ocr.ocr_api.domain.AnalysisStatus;
 
 import java.time.Instant;
 
-public record OcrAnalysisRequested(String jobId, byte[] fileBytes, String fileIdentifier, AnalysisStatus status,
+public record OcrAnalysisRequested(String jobId, byte[] fileBytes, String userId, String fileIdentifier, AnalysisStatus status,
                                    Instant ts) {
 }

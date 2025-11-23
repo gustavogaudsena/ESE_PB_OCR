@@ -19,6 +19,7 @@ public class ReceiptAnalysisProjection {
         ReceiptAnalysis receiptAnalysis = new ReceiptAnalysis();
         receiptAnalysis.setId(event.jobId());
         receiptAnalysis.setStatus(event.status());
+        receiptAnalysis.setUserId(event.userId());
 
         repository.save(receiptAnalysis);
     }

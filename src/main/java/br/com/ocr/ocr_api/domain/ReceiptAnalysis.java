@@ -14,7 +14,7 @@ public class ReceiptAnalysis {
     @Id
     private String id;
     private String ocrJobId;
-    private String aiJobId;
+    private String userId;
     private AnalysisStatus status;
     private AnalyzedDocument ocrResult;
     private List<AiAnalyzedItem> aiResult;
